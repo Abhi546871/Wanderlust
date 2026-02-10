@@ -104,8 +104,15 @@
                     <div id="map"></div>
                   </div>
                   <script>
-                    const coordinates = <% - JSON.stringify(listing.geometry.coordinates) %>;
+                    window.coordinates = <%-
+                      (listing.geometry &&
+                        Array.isArray(listing.geometry.coordinates) &&
+                        listing.geometry.coordinates.length === 2)
+                      ? JSON.stringify(listing.geometry.coordinates)
+                      : 'null'
+                      %>;
                   </script>
+
                   <script src="/js/map.js"></script>
         </div>
   </body>
