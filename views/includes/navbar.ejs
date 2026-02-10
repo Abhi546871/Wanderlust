@@ -58,65 +58,78 @@
   }
 </style>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
 
-  const input = document.getElementById("searchInput");
-  const dropdown = document.getElementById("searchDropdown");
+    const input = document.getElementById("searchInput");
+    const dropdown = document.getElementById("searchDropdown");
 
-  if (!input || !dropdown) return;
+    if (!input || !dropdown) return;
 
-  input.addEventListener("input", async () => {
-    const q = input.value.trim();
+    input.addEventListener("input", async () => {
+      const q = input.value.trim();
 
-    if (!q) {
-      dropdown.classList.add("d-none");
+      if (!q) {
+        dropdown.classList.add("d-none");
+        dropdown.innerHTML = "";
+        return;
+      }
+
+      const res = await fetch(`/listings/search/suggestions?q=${q}`);
+
+      if (!res.ok) {
+        dropdown.classList.add("d-none");
+        return;
+      }
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        dropdown.classList.add("d-none");
+        return;
+      }
+
+      const data = await res.json();
+
+
       dropdown.innerHTML = "";
-      return;
-    }
+      dropdown.classList.remove("d-none");
 
-    const res = await fetch(`/listings/search/suggestions?q=${q}`);
-    const data = await res.json();
+      const locations = new Set();
+      const countries = new Set();
+      const categories = new Set();
 
-    dropdown.innerHTML = "";
-    dropdown.classList.remove("d-none");
+      data.forEach(item => {
+        if (item.location?.toLowerCase().includes(q.toLowerCase()))
+          locations.add(item.location);
 
-    const locations = new Set();
-    const countries = new Set();
-    const categories = new Set();
+        if (item.country?.toLowerCase().includes(q.toLowerCase()))
+          countries.add(item.country);
 
-    data.forEach(item => {
-      if (item.location?.toLowerCase().includes(q.toLowerCase()))
-        locations.add(item.location);
+        if (item.category?.toLowerCase().includes(q.toLowerCase()))
+          categories.add(item.category);
+      });
 
-      if (item.country?.toLowerCase().includes(q.toLowerCase()))
-        countries.add(item.country);
-
-      if (item.category?.toLowerCase().includes(q.toLowerCase()))
-        categories.add(item.category);
+      if (locations.size) render("Destination", locations, "location");
+      if (countries.size) render("Country", countries, "country");
+      if (categories.size) render("Category", categories, "category");
     });
 
-    if (locations.size) render("Destination", locations, "location");
-    if (countries.size) render("Country", countries, "country");
-    if (categories.size) render("Category", categories, "category");
-  });
-
-  function render(title, items, key) {
-    dropdown.innerHTML += `
+    function render(title, items, key) {
+      dropdown.innerHTML += `
       <div class="search-section">
         <h6>${title}</h6>
         ${[...items].map(v =>
-          `<div class="search-item" data-url="/listings?${key}=${encodeURIComponent(v)}">${v}</div>`
-        ).join("")}
+        `<div class="search-item" data-url="/listings?${key}=${encodeURIComponent(v)}">${v}</div>`
+      ).join("")}
       </div>`;
-  }
-
-  dropdown.addEventListener("click", e => {
-    if (e.target.classList.contains("search-item")) {
-      window.location.href = e.target.dataset.url;
     }
-  });
 
-});
+    dropdown.addEventListener("click", e => {
+      if (e.target.classList.contains("search-item")) {
+        window.location.href = e.target.dataset.url;
+      }
+    });
+
+  });
 </script>
 
 
