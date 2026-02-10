@@ -1,0 +1,155 @@
+<style>
+  .search-btn {
+    background-color: #fe424d;
+    color: #fff;
+    border-radius: 25px;
+    padding: 0 1rem 0 1rem;
+  }
+
+  .search-btn:hover {
+    background-color: #fe424d;
+    color: #fff;
+  }
+
+  .search-btn i {
+    display: inline;
+    margin-right: 0.5rem;
+  }
+
+  .search-inp {
+    border-radius: 25px;
+    padding: 0.5rem 3rem 0.5rem 3rem;
+  }
+
+  .search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+    margin-top: 6px;
+    z-index: 2000;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .search-section {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .search-section h6 {
+    font-size: 12px;
+    color: #777;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .search-item {
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .search-item:hover {
+    background-color: #f5f5f5;
+  }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const input = document.getElementById("searchInput");
+  const dropdown = document.getElementById("searchDropdown");
+
+  if (!input || !dropdown) return;
+
+  input.addEventListener("input", async () => {
+    const q = input.value.trim();
+
+    if (!q) {
+      dropdown.classList.add("d-none");
+      dropdown.innerHTML = "";
+      return;
+    }
+
+    const res = await fetch(`/listings/search/suggestions?q=${q}`);
+    const data = await res.json();
+
+    dropdown.innerHTML = "";
+    dropdown.classList.remove("d-none");
+
+    const locations = new Set();
+    const countries = new Set();
+    const categories = new Set();
+
+    data.forEach(item => {
+      if (item.location?.toLowerCase().includes(q.toLowerCase()))
+        locations.add(item.location);
+
+      if (item.country?.toLowerCase().includes(q.toLowerCase()))
+        countries.add(item.country);
+
+      if (item.category?.toLowerCase().includes(q.toLowerCase()))
+        categories.add(item.category);
+    });
+
+    if (locations.size) render("Destination", locations, "location");
+    if (countries.size) render("Country", countries, "country");
+    if (categories.size) render("Category", categories, "category");
+  });
+
+  function render(title, items, key) {
+    dropdown.innerHTML += `
+      <div class="search-section">
+        <h6>${title}</h6>
+        ${[...items].map(v =>
+          `<div class="search-item" data-url="/listings?${key}=${encodeURIComponent(v)}">${v}</div>`
+        ).join("")}
+      </div>`;
+  }
+
+  dropdown.addEventListener("click", e => {
+    if (e.target.classList.contains("search-item")) {
+      window.location.href = e.target.dataset.url;
+    }
+  });
+
+});
+</script>
+
+
+<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/listings"><i class="fa-regular fa-compass"></i></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link" href="/listings">Explore</a>
+      </div>
+      <div class="navbar-nav ms-auto position-relative">
+        <!-- <form class="d-flex" role="search"> -->
+        <input class="form-control me-2 search-inp" type="search" placeholder="Search destinations" id="searchInput"
+          autocomplete="off" />
+        <!-- <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button> -->
+
+        <!-- </form> -->
+        <div id="searchDropdown" class="search-dropdown d-none"></div>
+      </div>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link" href="/listings/new">Airbnb your home</a>
+        <% if(!currUser) { %>
+          <a class="nav-link " href="/signup"><b>SignUp</b></a>
+          <a class="nav-link" href="/login"><b>Login</b></a>
+          <% } %>
+            <% if(currUser) { %>
+              <a class="nav-link" href="/logout"><b>Logout</b></a>
+              <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
