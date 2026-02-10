@@ -96,7 +96,6 @@ module.exports.renderEditForm = async (req, res) => {
 
 module.exports.createListing = async (req, res, next) => {
 
-    module.exports.createListing = async (req, res, next) => {
         try {
             const coordinates = await getCoordinates(req.body.listing.location);
 
@@ -118,9 +117,9 @@ module.exports.createListing = async (req, res, next) => {
             req.flash("error", err.message || "Invalid location");
             res.redirect("/listings/new");
         }
-    };
-
 };
+
+
 
 module.exports.updateListing = async (req, res) => {
     const { id } = req.params;
