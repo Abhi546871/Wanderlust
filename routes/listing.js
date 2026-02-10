@@ -13,8 +13,8 @@ router.route('/')
 // Post new Listing Route
 .post(
     isLoggedIn,
-    validateListing,
     upload.single('listing[image]'),
+    validateListing,
     wrapAsync(listingController.createListing),
     
 );
