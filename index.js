@@ -115,6 +115,7 @@ app.use((req,res,next)=>{
 //Error Handling Middleware
 app.use((err, req, res, next) => {
     let {status=500,message="Something went wrong"}=err;
+    console.log(err);
     res.status(status).render("error.ejs",{message});
 });
 
